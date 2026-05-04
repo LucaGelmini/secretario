@@ -10,10 +10,10 @@ export interface Env {
 
   // Secrets (accessed via env in production, .dev.vars in local dev)
 
-  // Google Service Account for Gmail API
-  GOOGLE_SERVICE_ACCOUNT_EMAIL?: string;
-  GOOGLE_PRIVATE_KEY?: string;
-  GOOGLE_IMPERSONATE_EMAIL?: string;
+  // Google OAuth2 for Gmail API (personal accounts)
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GOOGLE_REFRESH_TOKEN?: string;
 
   // Telegram Bot
   TELEGRAM_BOT_TOKEN?: string;

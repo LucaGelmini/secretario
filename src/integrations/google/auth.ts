@@ -1,6 +1,7 @@
 import { AuthenticationError } from '@/integrations/types';
 import type {
   GoogleJWTClaims,
+  GoogleOAuth2Credentials,
   GoogleServiceAccountCredentials,
   GoogleTokenResponse,
 } from './types';
@@ -114,6 +115,40 @@ async function exchangeJWTForToken(jwt: string): Promise<GoogleTokenResponse> {
 }
 
 /**
+ * Get an OAuth2 access token using a refresh token
+ *
+ * This is the recommended approach for personal Gmail accounts.
+ * The refresh token never expires and can be reused indefinitely.
+ *
+ * @param credentials - OAuth2 credentials with refresh token
+ * @returns OAuth2 access token
+ */
+export async function getAccessTokenFromRefreshToken(
+  credentials: GoogleOAuth2Credentials
+): Promise<string> {
+  const response = await fetch(GOOGLE_TOKEN_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      client_id: credentials.clientId,
+      client_secret: credentials.clientSecret,
+      refresh_token: credentials.refreshToken,
+      grant_type: 'refresh_token',
+    }).toString(),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new AuthenticationError('google', `Failed to refresh access token: ${error}`);
+  }
+
+  const tokenResponse = await response.json<GoogleTokenResponse>();
+  return tokenResponse.access_token;
+}
+
+/**
  * Get an OAuth2 access token using a Google Service Account
  *
  * This function:
@@ -121,6 +156,7 @@ async function exchangeJWTForToken(jwt: string): Promise<GoogleTokenResponse> {
  * 2. Exchanges the JWT for an access token
  *
  * The access token can then be used to call Google APIs on behalf of the impersonated user.
+ * Requires Google Workspace and domain-wide delegation.
  *
  * @param credentials - Service account credentials
  * @param scopes - Array of OAuth2 scopes (e.g., ['https://www.googleapis.com/auth/gmail.readonly'])
