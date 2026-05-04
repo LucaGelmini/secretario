@@ -1,4 +1,5 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
+import { fetchEmailsOperator } from '@/operators/email/fetch-emails';
 import type { Env } from '@/shared/env';
 import type { EmailDigestParams, EmailDigestResult } from './types';
 
@@ -7,45 +8,46 @@ import type { EmailDigestParams, EmailDigestResult } from './types';
  *
  * This workflow orchestrates the email digest process:
  * 1. Fetch emails from Gmail
- * 2. Summarize them using AI
- * 3. Send the summary to Telegram
- *
- * For now, this is a dummy implementation that just logs "Hello from Secretario"
+ * 2. Summarize them using AI (TODO: Step 4)
+ * 3. Send the summary to Telegram (TODO: Step 3)
  */
 export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestParams> {
   async run(
     event: WorkflowEvent<EmailDigestParams>,
     step: WorkflowStep
   ): Promise<EmailDigestResult> {
-    // Step 1: Initialize (dummy for now)
-    const initResult = await step.do('initialize', async () => {
-      console.log('Workflow triggered with params:', event.payload);
-      return {
-        message: 'Hello from Secretario! 🤖',
-        timestamp: new Date().toISOString(),
-        params: event.payload,
-      };
+    console.log('Email Digest Workflow started with params:', event.payload);
+
+    // Step 1: Fetch emails from Gmail
+    const emailsResult = await step.do('fetch-emails', async () => {
+      return await fetchEmailsOperator.execute(
+        {
+          hoursBack: event.payload.hoursBack || 24,
+          maxResults: 10,
+          unreadOnly: false,
+        },
+        { env: this.env }
+      );
     });
 
-    console.log('Init result:', initResult);
+    console.log(`Fetched ${emailsResult.count} emails`);
 
-    // Step 2: Dummy processing
-    const processResult = await step.do('process', async () => {
-      // Simulate some work
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    // Step 2: Log email subjects (for verification)
+    await step.do('log-subjects', async () => {
+      console.log('Email subjects:');
+      for (const email of emailsResult.emails) {
+        console.log(`  - [${email.date.toISOString()}] ${email.subject} (from: ${email.from})`);
+      }
 
       return {
-        emailCount: 0, // No emails yet (dummy)
-        processed: true,
+        subjects: emailsResult.emails.map((e) => e.subject),
       };
     });
-
-    console.log('Process result:', processResult);
 
     // Return workflow result
     return {
-      emailCount: processResult.emailCount,
-      notificationSent: false, // No notification yet (dummy)
+      emailCount: emailsResult.count,
+      notificationSent: false, // TODO: Step 3 - Send to Telegram
       completedAt: new Date().toISOString(),
     };
   }
