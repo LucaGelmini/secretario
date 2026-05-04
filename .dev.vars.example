@@ -1,0 +1,15 @@
+# Cloudflare Workers local development secrets
+# Copy this file to .dev.vars and fill in your actual values
+# .dev.vars is gitignored and should never be committed
+
+# Google Service Account (for Gmail API)
+# GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
+# GOOGLE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----
+# GOOGLE_IMPERSONATE_EMAIL=your-email@yourdomain.com
+
+# Telegram Bot
+# TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+# TELEGRAM_CHAT_ID=123456789
+
+# DeepSeek AI
+# DEEPSEEK_API_KEY=sk-...

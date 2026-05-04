@@ -1,0 +1,44 @@
+# dependencies
+node_modules
+bun.lockb
+
+# output
+out
+dist
+*.tgz
+
+# Cloudflare Workers
+.wrangler
+.dev.vars
+worker-configuration.d.ts
+
+# code coverage
+coverage
+*.lcov
+
+# logs
+logs
+*.log
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# environment variables (secrets)
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# IDEs
+.idea
+.vscode/settings.json
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

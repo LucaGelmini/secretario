@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    // Target Cloudflare Workers environment
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+
+    // Types
+    "types": ["@cloudflare/workers-types"],
+
+    // Path mappings for clean imports
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/operators/*": ["src/operators/*"],
+      "@/integrations/*": ["src/integrations/*"],
+      "@/workflows/*": ["src/workflows/*"],
+      "@/shared/*": ["src/shared/*"]
+    },
+
+    // Bundler mode
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+
+    // Type checking - strict mode
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+
+    // Interop
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", ".wrangler"]
+}

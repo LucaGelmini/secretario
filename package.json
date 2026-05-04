@@ -1,0 +1,22 @@
+{
+  "name": "secretario",
+  "version": "0.1.0",
+  "description": "Asistente personal serverless con IA en Cloudflare Workers",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "check": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.14",
+    "@cloudflare/workers-types": "^4.20260504.1",
+    "@types/bun": "latest",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.87.0"
+  }
+}

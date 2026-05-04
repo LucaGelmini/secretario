@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "secretario",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-04",
+  "compatibility_flags": [],
+
+  // Workflows configuration
+  "workflows": [
+    {
+      "name": "email-digest-workflow",
+      "binding": "EMAIL_DIGEST_WORKFLOW",
+      "class_name": "EmailDigestWorkflow"
+    }
+  ],
+
+  // Observability
+  "observability": {
+    "enabled": true
+  }
+}
