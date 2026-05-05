@@ -1,0 +1,161 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Generate types
+        run: bun run types
+
+      - name: Type check (quality gate)
+        run: bun run typecheck
+
+      - name: Lint (quality gate)
+        run: bun run check
+
+      - name: Calculate new version
+        id: version
+        run: |
+          CURRENT=$(jq -r .version package.json)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          
+          case "${{ inputs.version_bump }}" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW="${MAJOR}.${MINOR}.${PATCH}"
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "new=$NEW" >> $GITHUB_OUTPUT
+          echo "tag=v${NEW}" >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog entry
+        id: changelog
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          ENTRY=$(bun run scripts/generate-changelog.ts \
+            --version "${{ steps.version.outputs.new }}" \
+            --previous-tag "${{ steps.prev_tag.outputs.tag }}" 2>/dev/null)
+          
+          echo "entry<<EOF" >> $GITHUB_OUTPUT
+          echo "$ENTRY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update package.json version
+        run: |
+          jq '.version = "${{ steps.version.outputs.new }}"' package.json > tmp.json
+          mv tmp.json package.json
+
+      - name: Commit release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md package.json
+          git commit -m "chore: release ${{ steps.version.outputs.tag }}"
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin main --follow-tags
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          secrets: |
+            GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET
+            GOOGLE_REFRESH_TOKEN
+            TELEGRAM_BOT_TOKEN
+            TELEGRAM_CHAT_ID
+            DEEPSEEK_API_KEY
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body: ${{ steps.changelog.outputs.entry }}
+
+      - name: Extract last 5 CHANGELOG entries
+        id: changelog_last5
+        run: |
+          # Extract content between ## headers (skip the main title)
+          CONTENT=$(awk '/^## \[/{i++} i>=1 && i<=5' CHANGELOG.md)
+          
+          # Convert Markdown to Telegram HTML
+          # Simple conversion: **text** -> <b>text</b>, *text* -> <i>text</i>
+          # Bullet points: - text -> • text
+          CONTENT=$(echo "$CONTENT" | sed 's/\*\*\([^*]*\)\*\*/<b>\1<\/b>/g')
+          CONTENT=$(echo "$CONTENT" | sed 's/\*\([^*]*\)\*/<i>\1<\/i>/g')
+          CONTENT=$(echo "$CONTENT" | sed 's/^- /• /g')
+          CONTENT=$(echo "$CONTENT" | sed 's/^### \(.*\)$/<b>\1<\/b>/g')
+          CONTENT=$(echo "$CONTENT" | sed 's/^## \[\([^]]*\)\] - \(.*\)$/<b>[\1] - \2<\/b>/g')
+          
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Notify Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          MESSAGE="🚀 <b>Secretario ${{ steps.version.outputs.tag }} Released!</b>
+
+${{ steps.changelog_last5.outputs.content }}
+
+<i>Deployed to: secretario.lucagelmini.workers.dev</i>"
+
+          curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"text\": $(echo "$MESSAGE" | jq -Rs .), \"parse_mode\": \"HTML\", \"disable_web_page_preview\": true}"
