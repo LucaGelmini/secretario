@@ -10,25 +10,26 @@ Asistente personal serverless integrado con IA que automatiza tareas repetitivas
 - **IaC**: Wrangler (configuración declarativa en `wrangler.jsonc`)
 - **Lenguaje**: TypeScript
 
-## 🚀 Estructura del Proyecto
+## 🚀 Quick Start
 
-```
-secretario/
-├── src/
-│   ├── index.ts              # Worker entrypoint (fetch + scheduled handlers)
-│   ├── operators/            # Unidades atómicas de trabajo reutilizables
-│   │   ├── types.ts          # Contratos: Operator<TInput, TOutput>
-│   │   ├── ai/               # Operadores de IA (summarize, etc.)
-│   │   └── transform/        # Operadores de transformación
-│   ├── integrations/         # Conectores a servicios externos
-│   │   ├── gmail/            # Cliente Gmail API (OAuth2)
-│   │   ├── telegram/         # Cliente Telegram Bot API
-│   │   └── deepseek/         # Cliente DeepSeek API
-│   ├── workflows/            # Composición de operators
-│   │   ├── email-digest/     # Workflow: Gmail → DeepSeek → Telegram
-│   │   └── registry.ts       # Registro de workflows disponibles
-│   └── shared/               # Utilidades compartidas
-└── wrangler.jsonc            # Infraestructura como código (Workers + Workflows)
+```bash
+# Instalar dependencias
+bun install
+
+# Configurar Gmail OAuth2
+bun run scripts/get-refresh-token.ts
+
+# Configurar Telegram Bot
+bun run scripts/setup-telegram.ts
+
+# Obtener API key de DeepSeek en https://platform.deepseek.com
+echo "DEEPSEEK_API_KEY=sk-..." >> .dev.vars
+
+# Desarrollo local
+bun run dev
+
+# Deploy a producción
+bun run deploy
 ```
 
 ## 📦 Instalación
@@ -58,38 +59,40 @@ bun run types
 
 ## 🚢 Deploy
 
+Ver [docs/DEPLOY.md](./docs/DEPLOY.md) para guía completa de deployment.
+
 ```bash
 bun run deploy
 ```
 
-## 🔐 Configuración de Secrets
+## 🔐 Configuración
 
 ### Gmail (OAuth2)
 
-Ver [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md) para guía completa.
+Ver [docs/GOOGLE_OAUTH_SETUP.md](./docs/GOOGLE_OAUTH_SETUP.md) para guía completa.
 
 ```bash
-# Obtener refresh token
 bun run scripts/get-refresh-token.ts
 ```
 
 ### Telegram Bot
 
-Ver [TELEGRAM_SETUP.md](./TELEGRAM_SETUP.md) para guía completa.
+Ver [docs/TELEGRAM_SETUP.md](./docs/TELEGRAM_SETUP.md) para guía completa.
 
 ```bash
-# Setup automatizado
 bun run scripts/setup-telegram.ts
 ```
 
-### DeepSeek AI (TODO)
+### DeepSeek AI
 
-```bash
-# Agregar API key a .dev.vars
-echo "DEEPSEEK_API_KEY=sk-..." >> .dev.vars
-```
+1. Registrate en https://platform.deepseek.com/
+2. Crea una API key
+3. Agregala a `.dev.vars`:
+   ```bash
+   echo "DEEPSEEK_API_KEY=sk-..." >> .dev.vars
+   ```
 
-### Production Secrets
+### Secrets en Producción
 
 ```bash
 wrangler secret put GOOGLE_CLIENT_ID
@@ -103,12 +106,27 @@ wrangler secret put DEEPSEEK_API_KEY
 ## 📝 Workflows Disponibles
 
 ### Email Digest
-Lee emails de Gmail, genera un resumen con IA, y lo envía a Telegram.
+Lee emails de Gmail de las últimas 24 horas, los resume con IA (DeepSeek), y envía el resumen formateado a Telegram.
 
 **Trigger**: 
-- Cron: diario a las 8am
 - Manual: comando `/digest` en Telegram
+- Programado: configurar cron en `wrangler.jsonc`
+
+## 📚 Documentación
+
+- **[docs/](./docs/)** - Documentación completa
+- **[docs/DEPLOY.md](./docs/DEPLOY.md)** - Guía de deployment
+- **[docs/GOOGLE_OAUTH_SETUP.md](./docs/GOOGLE_OAUTH_SETUP.md)** - Configurar Gmail
+- **[docs/TELEGRAM_SETUP.md](./docs/TELEGRAM_SETUP.md)** - Configurar Telegram
+
+## 🏗️ Arquitectura
+
+- **Operators**: Unidades de trabajo reutilizables (`Operator<TInput, TOutput>`)
+- **Integrations**: Clientes de APIs (Gmail, Telegram, DeepSeek)
+- **Workflows**: Orquestación multi-step durable con Cloudflare Workflows
+
+Ver [docs/README.md](./docs/README.md) para más detalles.
 
 ---
 
-Built with ❤️ using [Cloudflare Workers](https://workers.cloudflare.com), [Bun](https://bun.sh), and [DeepSeek](https://deepseek.com)
+Built with [Cloudflare Workers](https://workers.cloudflare.com), [Bun](https://bun.sh), and [DeepSeek](https://deepseek.com)

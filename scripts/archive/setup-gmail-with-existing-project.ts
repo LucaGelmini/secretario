@@ -19,7 +19,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 
-const GCLOUD_PATH = process.env.HOME + '/google-cloud-sdk/bin/gcloud';
+const GCLOUD_PATH = `${process.env.HOME}/google-cloud-sdk/bin/gcloud`;
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 const REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob';
 
@@ -113,9 +113,7 @@ async function selectProject(): Promise<string> {
   ]);
   console.log(projects);
 
-  const projectId = await prompt(
-    '\nEnter the Project ID to use (e.g., service-accounts-492120): '
-  );
+  const projectId = await prompt('\nEnter the Project ID to use (e.g., service-accounts-492120): ');
 
   await runCommand(GCLOUD_PATH, ['config', 'set', 'project', projectId]);
 
@@ -133,7 +131,7 @@ async function enableApis(projectId: string): Promise<void> {
       `--project=${projectId}`,
     ]);
     console.log('✓ Gmail API enabled');
-  } catch (error) {
+  } catch (_error) {
     console.log('⚠️  Gmail API may already be enabled or you need to enable billing');
     console.log(
       `   Check: https://console.cloud.google.com/apis/library/gmail.googleapis.com?project=${projectId}`
@@ -141,17 +139,12 @@ async function enableApis(projectId: string): Promise<void> {
   }
 }
 
-async function getOAuth2Credentials(
-  projectId: string,
-  account: string
-): Promise<OAuth2Config> {
+async function getOAuth2Credentials(projectId: string, account: string): Promise<OAuth2Config> {
   console.log('\n🔑 OAuth2 Credentials Setup\n');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('\nYou need to create OAuth2 credentials in the console.');
   console.log('Follow these steps:\n');
-  console.log(
-    `1. Open: https://console.cloud.google.com/apis/credentials?project=${projectId}\n`
-  );
+  console.log(`1. Open: https://console.cloud.google.com/apis/credentials?project=${projectId}\n`);
 
   // Check if consent screen is configured
   console.log('2. If you see "Configure Consent Screen", click it:');
@@ -161,9 +154,7 @@ async function getOAuth2Credentials(
   console.log(`   - Developer email: ${account}`);
   console.log('   - Save and Continue\n');
   console.log('3. In "Scopes", click "Add or Remove Scopes"');
-  console.log(
-    '   - Search for: https://www.googleapis.com/auth/gmail.readonly'
-  );
+  console.log('   - Search for: https://www.googleapis.com/auth/gmail.readonly');
   console.log('   - Check the box, Update, Save and Continue\n');
   console.log('4. In "Test users", click "Add Users"');
   console.log(`   - Add: ${account}`);
@@ -213,10 +204,7 @@ function generateAuthUrl(config: OAuth2Config): string {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
-async function exchangeCodeForTokens(
-  config: OAuth2Config,
-  code: string
-): Promise<TokenResponse> {
+async function exchangeCodeForTokens(config: OAuth2Config, code: string): Promise<TokenResponse> {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: {
@@ -267,10 +255,7 @@ async function getRefreshToken(config: OAuth2Config): Promise<string> {
   return tokens.refresh_token;
 }
 
-async function saveToDevVars(
-  config: OAuth2Config,
-  refreshToken: string
-): Promise<void> {
+async function saveToDevVars(config: OAuth2Config, refreshToken: string): Promise<void> {
   const projectRoot = path.join(__dirname, '..');
   const devVarsPath = path.join(projectRoot, '.dev.vars');
 

@@ -7,9 +7,9 @@
  * Just paste your Client ID and Secret, then follow the auth flow.
  */
 
-import * as readline from 'node:readline';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as readline from 'node:readline';
 
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 const REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob';
@@ -54,10 +54,7 @@ function generateAuthUrl(config: OAuth2Config): string {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
-async function exchangeCodeForTokens(
-  config: OAuth2Config,
-  code: string
-): Promise<TokenResponse> {
+async function exchangeCodeForTokens(config: OAuth2Config, code: string): Promise<TokenResponse> {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: {

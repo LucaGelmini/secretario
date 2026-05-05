@@ -81,25 +81,27 @@ bun run wrangler tail
 bun run wrangler workflows list
 ```
 
-## 🔐 Gestión de Secrets (para pasos futuros)
+## 🔐 Gestión de Secrets
 
-Cuando agregues las integraciones (Gmail, Telegram, DeepSeek), necesitarás configurar secrets:
+Para configurar las credenciales de las integraciones:
 
 ```bash
-# Google Service Account
-wrangler secret put GOOGLE_SERVICE_ACCOUNT_EMAIL
-wrangler secret put GOOGLE_PRIVATE_KEY
-wrangler secret put GOOGLE_IMPERSONATE_EMAIL
+# Google OAuth2 (Gmail)
+wrangler secret put GOOGLE_CLIENT_ID
+wrangler secret put GOOGLE_CLIENT_SECRET
+wrangler secret put GOOGLE_REFRESH_TOKEN
 
-# Telegram
+# Telegram Bot
 wrangler secret put TELEGRAM_BOT_TOKEN
 wrangler secret put TELEGRAM_CHAT_ID
 
-# DeepSeek
+# DeepSeek AI
 wrangler secret put DEEPSEEK_API_KEY
 ```
 
 Los secrets se almacenan encriptados en Cloudflare y solo están disponibles en runtime.
+
+**Para desarrollo local**, usa `.dev.vars` (ver `.dev.vars.example`).
 
 ## 🔄 Re-deploys
 
@@ -133,4 +135,8 @@ Por ahora tenemos un solo entorno. Si más adelante querés separar dev/staging/
 
 ---
 
-**Próximo paso**: Una vez verificado que el workflow dummy funciona, continuamos con la integración de Gmail (Paso 2).
+## 📚 Más Información
+
+- [Google OAuth Setup](./GOOGLE_OAUTH_SETUP.md) - Configurar Gmail con OAuth2
+- [Telegram Setup](./TELEGRAM_SETUP.md) - Configurar bot de Telegram
+- [README](../README.md) - Documentación general del proyecto

@@ -1,9 +1,9 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
-import { fetchEmailsOperator } from '@/operators/email/fetch-emails';
 import { summarizeEmails } from '@/operators/ai/summarize-emails';
+import { fetchEmailsOperator } from '@/operators/email/fetch-emails';
 import { sendTelegramMessage } from '@/operators/telegram/send-message';
-import { markdownToTelegramHtml } from '@/shared/telegram-formatter';
 import type { Env } from '@/shared/env';
+import { markdownToTelegramHtml } from '@/shared/telegram-formatter';
 import type { EmailDigestParams, EmailDigestResult } from './types';
 
 /**

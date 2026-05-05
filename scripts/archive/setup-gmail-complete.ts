@@ -51,10 +51,7 @@ function prompt(question: string): Promise<string> {
   });
 }
 
-async function runCommand(
-  command: string,
-  args: string[]
-): Promise<string> {
+async function runCommand(command: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     const proc = spawn(command, args, {
       stdio: ['inherit', 'pipe', 'pipe'],
@@ -114,17 +111,10 @@ async function setupProject(): Promise<string> {
   console.log(`Creating project: ${projectId}`);
 
   try {
-    await runCommand(GCLOUD_PATH, [
-      'projects',
-      'create',
-      projectId,
-      '--name=Secretario',
-    ]);
+    await runCommand(GCLOUD_PATH, ['projects', 'create', projectId, '--name=Secretario']);
     console.log('✓ Project created');
-  } catch (error) {
-    console.log(
-      '\n⚠️  Project creation failed. Listing your existing projects:\n'
-    );
+  } catch (_error) {
+    console.log('\n⚠️  Project creation failed. Listing your existing projects:\n');
     const projects = await runCommand(GCLOUD_PATH, [
       'projects',
       'list',
@@ -142,12 +132,7 @@ async function setupProject(): Promise<string> {
 async function enableApis(projectId: string): Promise<void> {
   console.log('\n🔌 Enabling Gmail API...\n');
 
-  await runCommand(GCLOUD_PATH, [
-    'config',
-    'set',
-    'project',
-    projectId,
-  ]);
+  await runCommand(GCLOUD_PATH, ['config', 'set', 'project', projectId]);
 
   await runCommand(GCLOUD_PATH, [
     'services',
@@ -159,19 +144,12 @@ async function enableApis(projectId: string): Promise<void> {
   console.log('✓ Gmail API enabled');
 }
 
-async function getOAuth2Credentials(
-  projectId: string,
-  account: string
-): Promise<OAuth2Config> {
+async function getOAuth2Credentials(projectId: string, account: string): Promise<OAuth2Config> {
   console.log('\n🔑 OAuth2 Credentials Setup\n');
   console.log('═══════════════════════════════════════════════════════════');
-  console.log(
-    '\nUnfortunately, OAuth2 credentials cannot be created via CLI.'
-  );
+  console.log('\nUnfortunately, OAuth2 credentials cannot be created via CLI.');
   console.log('Please follow these manual steps:\n');
-  console.log(
-    `1. Open: https://console.cloud.google.com/apis/credentials?project=${projectId}\n`
-  );
+  console.log(`1. Open: https://console.cloud.google.com/apis/credentials?project=${projectId}\n`);
   console.log('2. Click "Configure Consent Screen"');
   console.log('   - User Type: External');
   console.log('   - App name: Secretario');
@@ -179,9 +157,7 @@ async function getOAuth2Credentials(
   console.log(`   - Developer email: ${account}`);
   console.log('   - Save and Continue\n');
   console.log('3. In "Scopes", click "Add or Remove Scopes"');
-  console.log(
-    '   - Find and select: https://www.googleapis.com/auth/gmail.readonly'
-  );
+  console.log('   - Find and select: https://www.googleapis.com/auth/gmail.readonly');
   console.log('   - Update, then Save and Continue\n');
   console.log('4. In "Test users", click "Add Users"');
   console.log(`   - Add: ${account}`);
@@ -231,10 +207,7 @@ function generateAuthUrl(config: OAuth2Config): string {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
-async function exchangeCodeForTokens(
-  config: OAuth2Config,
-  code: string
-): Promise<TokenResponse> {
+async function exchangeCodeForTokens(config: OAuth2Config, code: string): Promise<TokenResponse> {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: {
@@ -272,9 +245,7 @@ async function getRefreshToken(config: OAuth2Config): Promise<string> {
   const tokens = await exchangeCodeForTokens(config, authCode);
 
   if (!tokens.refresh_token) {
-    console.log(
-      '\n❌ No refresh token received. Revoke access and try again:'
-    );
+    console.log('\n❌ No refresh token received. Revoke access and try again:');
     console.log('   https://myaccount.google.com/permissions');
     throw new Error('No refresh token received');
   }

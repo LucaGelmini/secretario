@@ -7,8 +7,8 @@
  * - Telegram webhook for bot commands
  */
 
-import type { Env } from '@/shared/env';
 import type { TelegramUpdate } from '@/integrations/telegram/types';
+import type { Env } from '@/shared/env';
 
 // Export the workflow so Cloudflare can register it
 export { EmailDigestWorkflow } from '@/workflows/email-digest/workflow';
