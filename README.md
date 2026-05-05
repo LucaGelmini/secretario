@@ -64,14 +64,40 @@ bun run deploy
 
 ## 🔐 Configuración de Secrets
 
-1. Copia `.dev.vars.example` a `.dev.vars`
-2. Rellena los valores reales (ver documentación de cada integración)
+### Gmail (OAuth2)
 
-Para production, usa:
+Ver [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md) para guía completa.
+
 ```bash
-wrangler secret put GOOGLE_SERVICE_ACCOUNT_EMAIL
-wrangler secret put GOOGLE_PRIVATE_KEY
-# ... etc
+# Obtener refresh token
+bun run scripts/get-refresh-token.ts
+```
+
+### Telegram Bot
+
+Ver [TELEGRAM_SETUP.md](./TELEGRAM_SETUP.md) para guía completa.
+
+```bash
+# Setup automatizado
+bun run scripts/setup-telegram.ts
+```
+
+### DeepSeek AI (TODO)
+
+```bash
+# Agregar API key a .dev.vars
+echo "DEEPSEEK_API_KEY=sk-..." >> .dev.vars
+```
+
+### Production Secrets
+
+```bash
+wrangler secret put GOOGLE_CLIENT_ID
+wrangler secret put GOOGLE_CLIENT_SECRET
+wrangler secret put GOOGLE_REFRESH_TOKEN
+wrangler secret put TELEGRAM_BOT_TOKEN
+wrangler secret put TELEGRAM_CHAT_ID
+wrangler secret put DEEPSEEK_API_KEY
 ```
 
 ## 📝 Workflows Disponibles
