@@ -1,5 +1,6 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
 import { fetchEmailsOperator } from '@/operators/email/fetch-emails';
+import { summarizeEmails } from '@/operators/ai/summarize-emails';
 import { sendTelegramMessage } from '@/operators/telegram/send-message';
 import type { Env } from '@/shared/env';
 import type { EmailDigestParams, EmailDigestResult } from './types';
@@ -9,9 +10,8 @@ import type { EmailDigestParams, EmailDigestResult } from './types';
  *
  * This workflow orchestrates the email digest process:
  * 1. Fetch emails from Gmail
- * 2. Format email digest message
- * 3. Send the digest to Telegram
- * 4. (TODO: Step 4) Summarize with DeepSeek AI
+ * 2. Summarize emails with DeepSeek AI
+ * 3. Send the AI summary to Telegram
  */
 export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestParams> {
   async run(
@@ -34,29 +34,36 @@ export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestPara
 
     console.log(`Fetched ${emailsResult.count} emails`);
 
-    // Step 2: Format email digest message
-    const digestMessage = await step.do('format-digest', async () => {
-      if (emailsResult.count === 0) {
-        return 'No new emails in the last 24 hours.';
-      }
+    // Step 2: Summarize emails with AI (if we have emails)
+    let digestMessage: string;
 
-      const lines = [
-        `📧 Email Digest (${emailsResult.count} emails)\n`,
-        ...emailsResult.emails.map((email, i) => {
-          const date = new Date(email.date).toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-          return `${i + 1}. ${email.subject}\n   From: ${email.from}\n   ${date}`;
-        }),
-      ];
+    if (emailsResult.count === 0) {
+      digestMessage = '📭 No hay emails nuevos en las últimas 24 horas.';
+    } else {
+      const summaryResult = await step.do('summarize-emails', async () => {
+        return await summarizeEmails(
+          {
+            emails: emailsResult.emails,
+            language: 'es',
+            style: 'brief',
+            maxTokens: 1000,
+          },
+          { env: this.env }
+        );
+      });
 
-      return lines.join('\n');
-    });
+      console.log(
+        `AI summary generated (${summaryResult.usage.totalTokens} tokens, model: ${summaryResult.model})`
+      );
 
-    console.log('Digest message formatted');
+      // Format final message with AI summary
+      digestMessage = `📧 Resumen de Emails (${emailsResult.count} emails)
+
+${summaryResult.summary}
+
+---
+Tokens: ${summaryResult.usage.totalTokens} | Modelo: ${summaryResult.model}`;
+    }
 
     // Step 3: Send to Telegram
     const telegramResult = await step.do('send-to-telegram', async () => {
