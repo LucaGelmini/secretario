@@ -1,6 +1,12 @@
 # Secretario
 
-Asistente personal serverless integrado con IA que automatiza tareas repetitivas de baja criticalidad.
+<p align="center">
+  <img src="alfred.png" alt="Secretario" width="300">
+</p>
+
+<p align="center">
+  <em>Asistente personal serverless integrado con IA que automatiza tareas repetitivas de baja criticalidad.</em>
+</p>
 
 ## 🏗️ Arquitectura
 
@@ -105,12 +111,23 @@ wrangler secret put DEEPSEEK_API_KEY
 
 ## 📝 Workflows Disponibles
 
-### Email Digest
-Lee emails de Gmail de las últimas 24 horas, los resume con IA (DeepSeek), y envía el resumen formateado a Telegram.
+### Email Digest + Cleanup
+Workflow diario automático que:
+- 📥 Fetch de emails de las últimas 24 horas
+- 🏷️ Clasificación automática con reglas determinísticas + IA
+- 🗂️ Organización: labels y limpieza (batch operations)
+- 🤖 Resumen con IA (DeepSeek) de emails importantes
+- 📊 Estadísticas de clasificación
+- 💡 Sugerencias de nuevas reglas para confirmar
 
 **Trigger**: 
-- Manual: comando `/digest` en Telegram
-- Programado: configurar cron en `wrangler.jsonc`
+- **Automático**: Todos los días a las 8:30 AM (Argentina)
+- **Manual**: Comando `/digest` en Telegram o `GET /trigger`
+
+**Seguridad**:
+- 🔐 Bot de Telegram solo responde a tu chat ID
+- 🛡️ Protección contra prompt injection
+- ✅ Reglas aprendidas requieren confirmación explícita
 
 ## 📚 Documentación
 
