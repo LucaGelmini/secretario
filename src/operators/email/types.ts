@@ -1,36 +1,65 @@
 import type { Email } from '@/integrations/gmail/types';
+import type { Category, ClassificationResult } from '@/config/gmail-rules';
 
 /**
- * Input for the fetch-emails operator
+ * Fetch Emails Operator Input/Output
  */
 export interface FetchEmailsInput {
-  /**
-   * How many hours back to look for emails
-   */
   hoursBack: number;
-
-  /**
-   * Maximum number of emails to fetch
-   */
   maxResults?: number;
-
-  /**
-   * Only fetch unread emails
-   */
   unreadOnly?: boolean;
 }
 
-/**
- * Output from the fetch-emails operator
- */
 export interface FetchEmailsOutput {
-  /**
-   * Fetched emails
-   */
   emails: Email[];
-
-  /**
-   * Total number of emails fetched
-   */
   count: number;
+}
+
+/**
+ * Classify Emails Operator Input/Output
+ */
+export interface ClassifyEmailsInput {
+  emails: Email[];
+}
+
+export interface ClassifiedEmail {
+  email: Email;
+  classification: ClassificationResult;
+}
+
+export interface RuleSuggestion {
+  emailAddress: string;
+  suggestedCategory: Category;
+  suggestedLabel: string;
+  sampleSubject: string;
+  confidence: number;
+}
+
+export interface ClassifyEmailsOutput {
+  classified: ClassifiedEmail[];
+  suggestions: RuleSuggestion[];
+  stats: {
+    total: number;
+    toLabel: number;
+    toDelete: number;
+    toReview: number;
+    byCategory: Record<string, number>;
+  };
+}
+
+/**
+ * Organize Emails Operator Input/Output
+ */
+export interface OrganizeEmailsInput {
+  classified: ClassifiedEmail[];
+}
+
+export interface OrganizeEmailsOutput {
+  labeled: number;
+  deleted: number;
+  errors: number;
+  stats: {
+    byCategory: Record<string, number>;
+    byAction: Record<string, number>;
+  };
 }

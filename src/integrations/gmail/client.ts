@@ -4,8 +4,11 @@ import type {
   EmailFilter,
   GmailConfig,
   GmailHeader,
+  GmailLabel,
+  GmailLabelsListResponse,
   GmailListMessagesResponse,
   GmailMessageFull,
+  GmailModifyMessageRequest,
 } from './types';
 
 /**
@@ -218,5 +221,169 @@ export class GmailClient {
     }
 
     return emails;
+  }
+
+  /**
+   * List all labels in the user's mailbox
+   *
+   * @returns Array of labels
+   */
+  async listLabels(): Promise<GmailLabel[]> {
+    const response = await this.request<GmailLabelsListResponse>('/labels');
+    return response.labels || [];
+  }
+
+  /**
+   * Get a label by ID
+   *
+   * @param labelId - Label ID
+   * @returns Label details
+   */
+  async getLabel(labelId: string): Promise<GmailLabel> {
+    return this.request<GmailLabel>(`/labels/${labelId}`);
+  }
+
+  /**
+   * Create a new label
+   *
+   * @param name - Label name
+   * @returns Created label
+   */
+  async createLabel(name: string): Promise<GmailLabel> {
+    return this.request<GmailLabel>('/labels', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        labelListVisibility: 'labelShow',
+        messageListVisibility: 'show',
+      }),
+    });
+  }
+
+  /**
+   * Modify labels on a message
+   *
+   * @param messageId - Message ID
+   * @param addLabelIds - Label IDs to add
+   * @param removeLabelIds - Label IDs to remove
+   */
+  async modifyMessageLabels(
+    messageId: string,
+    addLabelIds?: string[],
+    removeLabelIds?: string[]
+  ): Promise<void> {
+    const body: GmailModifyMessageRequest = {};
+    if (addLabelIds && addLabelIds.length > 0) {
+      body.addLabelIds = addLabelIds;
+    }
+    if (removeLabelIds && removeLabelIds.length > 0) {
+      body.removeLabelIds = removeLabelIds;
+    }
+
+    await this.request(`/messages/${messageId}/modify`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * Add a label to a message
+   *
+   * @param messageId - Message ID
+   * @param labelId - Label ID to add
+   */
+  async addLabel(messageId: string, labelId: string): Promise<void> {
+    await this.modifyMessageLabels(messageId, [labelId]);
+  }
+
+  /**
+   * Remove a label from a message
+   *
+   * @param messageId - Message ID
+   * @param labelId - Label ID to remove
+   */
+  async removeLabel(messageId: string, labelId: string): Promise<void> {
+    await this.modifyMessageLabels(messageId, undefined, [labelId]);
+  }
+
+  /**
+   * Move a message to trash
+   *
+   * @param messageId - Message ID
+   */
+  async trashMessage(messageId: string): Promise<void> {
+    await this.request(`/messages/${messageId}/trash`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Archive a message (remove from INBOX)
+   *
+   * @param messageId - Message ID
+   */
+  async archiveMessage(messageId: string): Promise<void> {
+    await this.modifyMessageLabels(messageId, undefined, ['INBOX']);
+  }
+
+  /**
+   * Mark a message as read
+   *
+   * @param messageId - Message ID
+   */
+  async markAsRead(messageId: string): Promise<void> {
+    await this.modifyMessageLabels(messageId, undefined, ['UNREAD']);
+  }
+
+  /**
+   * Mark a message as unread
+   *
+   * @param messageId - Message ID
+   */
+  async markAsUnread(messageId: string): Promise<void> {
+    await this.modifyMessageLabels(messageId, ['UNREAD']);
+  }
+
+  /**
+   * Batch modify labels on multiple messages
+   *
+   * More efficient than modifying one by one. Gmail API supports up to 1000 messages per request.
+   *
+   * @param messageIds - Array of message IDs (max 1000)
+   * @param addLabelIds - Label IDs to add
+   * @param removeLabelIds - Label IDs to remove
+   */
+  async batchModify(
+    messageIds: string[],
+    addLabelIds?: string[],
+    removeLabelIds?: string[]
+  ): Promise<void> {
+    if (messageIds.length === 0) {
+      return;
+    }
+
+    if (messageIds.length > 1000) {
+      throw new IntegrationError(
+        'gmail',
+        'Batch modify supports maximum 1000 messages per request'
+      );
+    }
+
+    const body: { ids: string[]; addLabelIds?: string[]; removeLabelIds?: string[] } = {
+      ids: messageIds,
+    };
+
+    if (addLabelIds && addLabelIds.length > 0) {
+      body.addLabelIds = addLabelIds;
+    }
+
+    if (removeLabelIds && removeLabelIds.length > 0) {
+      body.removeLabelIds = removeLabelIds;
+    }
+
+    await this.request('/messages/batchModify', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
   }
 }

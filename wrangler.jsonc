@@ -14,6 +14,21 @@
     }
   ],
 
+  // KV Namespaces
+  "kv_namespaces": [
+    {
+      "binding": "GMAIL_RULES_KV",
+      "id": "004110a8b4c34163bee9dd858a963a45",
+      "preview_id": "da83e3a202bf4d2b9006ef31f7865ab6"
+    }
+  ],
+
+  // Cron Triggers
+  // 30 11 * * * = 11:30 UTC = 08:30 UTC-3 (Argentina time)
+  "triggers": {
+    "crons": ["30 11 * * *"]
+  },
+
   // Observability
   "observability": {
     "enabled": true

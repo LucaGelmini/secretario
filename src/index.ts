@@ -9,9 +9,12 @@
 
 import type { TelegramUpdate } from '@/integrations/telegram/types';
 import type { Env } from '@/shared/env';
+import packageJson from '../package.json';
 
 // Export the workflow so Cloudflare can register it
 export { EmailDigestWorkflow } from '@/workflows/email-digest/workflow';
+
+const VERSION = packageJson.version;
 
 /**
  * Main fetch handler for HTTP requests
@@ -25,7 +28,7 @@ export default {
       return Response.json({
         status: 'ok',
         service: 'secretario',
-        version: '0.1.0',
+        version: VERSION,
         timestamp: new Date().toISOString(),
       });
     }
@@ -64,8 +67,17 @@ export default {
         const update = (await request.json()) as TelegramUpdate;
         console.log('Received Telegram update:', update);
 
+        const chatId = update.message?.chat?.id?.toString();
+        const text = update.message?.text?.trim();
+
+        // Security: Only respond to authorized chat
+        if (chatId !== env.TELEGRAM_CHAT_ID) {
+          console.warn(`Unauthorized Telegram request from chat ${chatId}`);
+          return new Response('OK', { status: 200 }); // Silent reject
+        }
+
         // Handle /digest command
-        if (update.message?.text?.startsWith('/digest')) {
+        if (text?.startsWith('/digest')) {
           console.log('Processing /digest command');
 
           // Trigger the email digest workflow
@@ -76,8 +88,79 @@ export default {
           });
 
           console.log('Workflow triggered via Telegram command:', instance.id);
+          return new Response('OK', { status: 200 });
+        }
 
-          // Respond to Telegram (200 OK is enough - the workflow will send the digest)
+        // Handle rule confirmation (e.g., "1" or "1 facturas")
+        const ruleMatch = text?.match(/^(\d+)\s*(.*)$/);
+        if (ruleMatch) {
+          const [, indexStr, overrideCategory] = ruleMatch;
+          const index = indexStr || '';
+
+          console.log(`Processing rule confirmation: index=${index}, override=${overrideCategory}`);
+
+          // Load pending suggestions from KV
+          const pendingJson = await env.GMAIL_RULES_KV.get('rules:pending');
+          if (!pendingJson) {
+            console.log('No pending rules found');
+            return new Response('OK', { status: 200 });
+          }
+
+          const pending = JSON.parse(pendingJson);
+          const suggestion = pending[index];
+
+          if (!suggestion) {
+            console.log(`Invalid rule index: ${index}`);
+            return new Response('OK', { status: 200 });
+          }
+
+          // Determine final category (use override if provided)
+          let finalCategory = suggestion.suggestedCategory;
+          let finalLabel = suggestion.suggestedLabel;
+
+          if (overrideCategory) {
+            // User wants to change category
+            finalLabel = overrideCategory.trim();
+            finalCategory = overrideCategory
+              .toLowerCase()
+              .replace(/\s+/g, '_')
+              .replace(/[áàäâ]/g, 'a')
+              .replace(/[éèëê]/g, 'e')
+              .replace(/[íìïî]/g, 'i')
+              .replace(/[óòöô]/g, 'o')
+              .replace(/[úùüû]/g, 'u');
+          }
+
+          // Save to learned rules
+          const learnedJson = await env.GMAIL_RULES_KV.get('rules:learned');
+          const learned = learnedJson ? JSON.parse(learnedJson) : {};
+
+          learned[suggestion.email] = {
+            category: finalCategory,
+            labelName: finalLabel,
+            confirmedAt: new Date().toISOString(),
+            source: 'ai_suggestion',
+          };
+
+          await env.GMAIL_RULES_KV.put('rules:learned', JSON.stringify(learned));
+
+          // Remove from pending
+          delete pending[index];
+          await env.GMAIL_RULES_KV.put('rules:pending', JSON.stringify(pending), {
+            expirationTtl: 7 * 24 * 60 * 60,
+          });
+
+          // Send confirmation via TelegramClient
+          const { TelegramClient } = await import('@/integrations/telegram/client');
+          const telegram = new TelegramClient(env.TELEGRAM_BOT_TOKEN!);
+
+          await telegram.sendMessage({
+            chat_id: chatId!,
+            text: `✅ Regla guardada:\n<code>${suggestion.email}</code> → <b>${finalLabel}</b>`,
+            parse_mode: 'HTML',
+          });
+
+          console.log(`Rule confirmed: ${suggestion.email} → ${finalCategory}`);
           return new Response('OK', { status: 200 });
         }
 

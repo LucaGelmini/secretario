@@ -11,7 +11,10 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 
-const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
+const SCOPES = [
+  'https://www.googleapis.com/auth/gmail.modify',
+  'https://www.googleapis.com/auth/gmail.labels',
+];
 const REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob';
 
 interface OAuth2Config {
@@ -121,7 +124,7 @@ async function main() {
     console.log(generateAuthUrl(config));
     console.log('\n1. Log in with your Gmail account (lfgelmini@gmail.com)');
     console.log('2. You may see "Google hasn\'t verified this app" - click "Continue"');
-    console.log('3. Click "Allow" to grant Gmail read access');
+    console.log('3. Click "Allow" to grant Gmail full access (read, modify, labels)');
     console.log('4. Copy the authorization code shown\n');
 
     const authCode = await prompt('Paste the authorization code here: ');

@@ -8,6 +8,9 @@ export interface Env {
   // Workflow Bindings
   EMAIL_DIGEST_WORKFLOW: Workflow;
 
+  // KV Namespaces
+  GMAIL_RULES_KV: KVNamespace;
+
   // Secrets (accessed via env in production, .dev.vars in local dev)
 
   // Google OAuth2 for Gmail API (personal accounts)

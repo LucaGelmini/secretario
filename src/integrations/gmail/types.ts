@@ -169,3 +169,29 @@ export interface EmailFilter {
    */
   query?: string;
 }
+
+/**
+ * Gmail Label
+ */
+export interface GmailLabel {
+  id: string;
+  name: string;
+  type?: string;
+  messageListVisibility?: string;
+  labelListVisibility?: string;
+}
+
+/**
+ * Gmail Labels list response
+ */
+export interface GmailLabelsListResponse {
+  labels: GmailLabel[];
+}
+
+/**
+ * Gmail modify message request
+ */
+export interface GmailModifyMessageRequest {
+  addLabelIds?: string[];
+  removeLabelIds?: string[];
+}
