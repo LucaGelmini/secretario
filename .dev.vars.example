@@ -2,12 +2,15 @@
 # Copy this file to .dev.vars and fill in your actual values
 # .dev.vars is gitignored and should never be committed
 
-# Google OAuth2 for Gmail API (run: bun run scripts/setup-gmail-oauth.ts)
+# Google OAuth2 for Gmail API
+# Get these by running: bun run scripts/get-refresh-token.ts
 # GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 # GOOGLE_CLIENT_SECRET=your-client-secret
 # GOOGLE_REFRESH_TOKEN=your-refresh-token
 
 # Telegram Bot
+# 1. Create bot with @BotFather and get token
+# 2. Get your chat ID by messaging the bot and calling: https://api.telegram.org/bot<TOKEN>/getUpdates
 # TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
 # TELEGRAM_CHAT_ID=123456789
 

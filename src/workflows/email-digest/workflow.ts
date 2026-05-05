@@ -1,5 +1,6 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
 import { fetchEmailsOperator } from '@/operators/email/fetch-emails';
+import { sendTelegramMessage } from '@/operators/telegram/send-message';
 import type { Env } from '@/shared/env';
 import type { EmailDigestParams, EmailDigestResult } from './types';
 
@@ -8,8 +9,9 @@ import type { EmailDigestParams, EmailDigestResult } from './types';
  *
  * This workflow orchestrates the email digest process:
  * 1. Fetch emails from Gmail
- * 2. Summarize them using AI (TODO: Step 4)
- * 3. Send the summary to Telegram (TODO: Step 3)
+ * 2. Format email digest message
+ * 3. Send the digest to Telegram
+ * 4. (TODO: Step 4) Summarize with DeepSeek AI
  */
 export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestParams> {
   async run(
@@ -32,22 +34,48 @@ export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestPara
 
     console.log(`Fetched ${emailsResult.count} emails`);
 
-    // Step 2: Log email subjects (for verification)
-    await step.do('log-subjects', async () => {
-      console.log('Email subjects:');
-      for (const email of emailsResult.emails) {
-        console.log(`  - [${email.date.toISOString()}] ${email.subject} (from: ${email.from})`);
+    // Step 2: Format email digest message
+    const digestMessage = await step.do('format-digest', async () => {
+      if (emailsResult.count === 0) {
+        return 'No new emails in the last 24 hours.';
       }
 
-      return {
-        subjects: emailsResult.emails.map((e) => e.subject),
-      };
+      const lines = [
+        `📧 Email Digest (${emailsResult.count} emails)\n`,
+        ...emailsResult.emails.map((email, i) => {
+          const date = new Date(email.date).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+          return `${i + 1}. ${email.subject}\n   From: ${email.from}\n   ${date}`;
+        }),
+      ];
+
+      return lines.join('\n');
     });
+
+    console.log('Digest message formatted');
+
+    // Step 3: Send to Telegram
+    const telegramResult = await step.do('send-to-telegram', async () => {
+      return await sendTelegramMessage(
+        {
+          text: digestMessage,
+          parseMode: undefined, // Plain text for now
+          disableWebPagePreview: true,
+        },
+        { env: this.env }
+      );
+    });
+
+    console.log(`Sent digest to Telegram (message ID: ${telegramResult.messageId})`);
 
     // Return workflow result
     return {
       emailCount: emailsResult.count,
-      notificationSent: false, // TODO: Step 3 - Send to Telegram
+      notificationSent: true,
       completedAt: new Date().toISOString(),
     };
   }

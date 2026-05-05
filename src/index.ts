@@ -4,10 +4,11 @@
  * This Worker handles:
  * - HTTP requests to manually trigger workflows
  * - Scheduled (cron) triggers for automated workflow execution
- * - Telegram webhook for bot commands (in later phases)
+ * - Telegram webhook for bot commands
  */
 
 import type { Env } from '@/shared/env';
+import type { TelegramUpdate } from '@/integrations/telegram/types';
 
 // Export the workflow so Cloudflare can register it
 export { EmailDigestWorkflow } from '@/workflows/email-digest/workflow';
@@ -57,11 +58,43 @@ export default {
       }
     }
 
+    // Telegram webhook endpoint
+    if (url.pathname === '/telegram/webhook' && request.method === 'POST') {
+      try {
+        const update = (await request.json()) as TelegramUpdate;
+        console.log('Received Telegram update:', update);
+
+        // Handle /digest command
+        if (update.message?.text?.startsWith('/digest')) {
+          console.log('Processing /digest command');
+
+          // Trigger the email digest workflow
+          const instance = await env.EMAIL_DIGEST_WORKFLOW.create({
+            params: {
+              hoursBack: 24,
+            },
+          });
+
+          console.log('Workflow triggered via Telegram command:', instance.id);
+
+          // Respond to Telegram (200 OK is enough - the workflow will send the digest)
+          return new Response('OK', { status: 200 });
+        }
+
+        // Ignore other messages
+        return new Response('OK', { status: 200 });
+      } catch (error) {
+        console.error('Error handling Telegram webhook:', error);
+        // Always return 200 to Telegram to avoid retries
+        return new Response('OK', { status: 200 });
+      }
+    }
+
     // Not found
     return Response.json(
       {
         error: 'Not found',
-        availableEndpoints: ['/', '/health', '/trigger'],
+        availableEndpoints: ['/', '/health', '/trigger', '/telegram/webhook'],
       },
       { status: 404 }
     );
