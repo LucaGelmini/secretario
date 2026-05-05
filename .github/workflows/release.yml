@@ -149,10 +149,12 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VERSION_TAG: ${{ steps.version.outputs.tag }}
+          CHANGELOG_CONTENT: ${{ steps.changelog_last5.outputs.content }}
         run: |
-          MESSAGE="🚀 <b>Secretario ${{ steps.version.outputs.tag }} Released!</b>
+          MESSAGE="🚀 <b>Secretario ${VERSION_TAG} Released!</b>
 
-${{ steps.changelog_last5.outputs.content }}
+${CHANGELOG_CONTENT}
 
 <i>Deployed to: secretario.lucagelmini.workers.dev</i>"
 
