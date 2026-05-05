@@ -46,10 +46,20 @@ export class DeepSeekClient {
 			});
 
 			if (!response.ok) {
-				const errorData = (await response.json()) as DeepSeekErrorResponse;
+				const errorText = await response.text();
+				console.error("DeepSeek API error response:", errorText);
+				
+				let errorMessage = `HTTP ${response.status}`;
+				try {
+					const errorData = JSON.parse(errorText) as DeepSeekErrorResponse;
+					errorMessage = errorData.error.message;
+				} catch {
+					errorMessage = errorText.substring(0, 200);
+				}
+				
 				throw new IntegrationError(
 					"deepseek",
-					`DeepSeek API error: ${errorData.error.message}`,
+					`DeepSeek API error: ${errorMessage}`,
 					response.status,
 				);
 			}
