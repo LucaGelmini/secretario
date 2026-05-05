@@ -45,10 +45,10 @@ export class GmailClient {
     if (!response.ok) {
       const error = await response.text();
       throw new IntegrationError(
-        `Gmail API request failed: ${error}`,
         'gmail',
-        'API_ERROR',
-        response.status
+        `Gmail API request failed: ${error}`,
+        response.status,
+        'API_ERROR'
       );
     }
 

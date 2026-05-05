@@ -49,10 +49,10 @@ export class TelegramClient {
     return response;
   }
 
-  /**
-   * Generic API request method
-   */
-  private async apiRequest<T>(method: string, params: Record<string, unknown>): Promise<T> {
+	/**
+	 * Generic API request method
+	 */
+	private async apiRequest<T>(method: string, params: Record<string, unknown> | object): Promise<T> {
     const url = `${this.baseUrl}/${method}`;
 
     try {

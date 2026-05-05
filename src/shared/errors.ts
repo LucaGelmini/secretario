@@ -43,8 +43,8 @@ export class ConfigurationError extends SecretarioError {
  * @param requiredKeys - Array of required key names
  * @throws {ConfigurationError} if any required keys are missing
  */
-export function validateEnv(env: Record<string, unknown>, requiredKeys: string[]): void {
-  const missingKeys = requiredKeys.filter((key) => !env[key]);
+export function validateEnv(env: Record<string, unknown> | object, requiredKeys: string[]): void {
+  const missingKeys = requiredKeys.filter((key) => !(env as Record<string, unknown>)[key]);
 
   if (missingKeys.length > 0) {
     throw new ConfigurationError(

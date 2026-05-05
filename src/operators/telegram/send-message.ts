@@ -1,6 +1,6 @@
 import { TelegramClient } from '@/integrations/telegram/client';
 import { AuthenticationError } from '@/integrations/types';
-import type { Operator } from '@/operators/types';
+import type { Operator, OperatorContext } from '@/operators/types';
 import type { SendTelegramMessageInput, SendTelegramMessageOutput } from './types';
 
 /**
@@ -12,7 +12,9 @@ import type { SendTelegramMessageInput, SendTelegramMessageOutput } from './type
 export const sendTelegramMessage: Operator<
   SendTelegramMessageInput,
   SendTelegramMessageOutput
-> = async (input, context) => {
+> = {
+  name: 'send-telegram-message',
+  execute: async (input: SendTelegramMessageInput, context: OperatorContext): Promise<SendTelegramMessageOutput> => {
   const { text, chatId, parseMode, disableWebPagePreview, silent } = input;
   const { env } = context;
 
@@ -41,10 +43,11 @@ export const sendTelegramMessage: Operator<
     disable_notification: silent,
   });
 
-  return {
-    messageId: message.message_id,
-    chatId: message.chat.id,
-    sentAt: message.date,
-    success: true,
-  };
+    return {
+      messageId: message.message_id,
+      chatId: message.chat.id,
+      sentAt: message.date,
+      success: true,
+    };
+  },
 };

@@ -1,6 +1,6 @@
 import { DeepSeekClient } from '@/integrations/deepseek/client';
 import { AuthenticationError } from '@/integrations/types';
-import type { Operator } from '@/operators/types';
+import type { Operator, OperatorContext } from '@/operators/types';
 import type { SummarizeEmailsInput, SummarizeEmailsOutput } from './types';
 
 /**
@@ -9,10 +9,12 @@ import type { SummarizeEmailsInput, SummarizeEmailsOutput } from './types';
  * Takes a list of emails and generates a concise, intelligent summary
  * highlighting the most important information.
  */
-export const summarizeEmails: Operator<SummarizeEmailsInput, SummarizeEmailsOutput> = async (
-  input,
-  context
-) => {
+export const summarizeEmails: Operator<SummarizeEmailsInput, SummarizeEmailsOutput> = {
+  name: 'summarize-emails',
+  execute: async (
+    input: SummarizeEmailsInput,
+    context: OperatorContext
+  ): Promise<SummarizeEmailsOutput> => {
   const { emails, language = 'es', style = 'brief', maxTokens = 1000 } = input;
   const { env } = context;
 
@@ -48,7 +50,7 @@ Organize by priority or topic. Use clear formatting with bullet points.`,
 
   // Build user prompt with email data
   const emailsText = emails
-    .map((email, i) => {
+    .map((email, i: number) => {
       return `Email ${i + 1}:
 From: ${email.from}
 Subject: ${email.subject}
@@ -80,14 +82,15 @@ ${emailsText}`;
     throw new Error('No completion choice returned from DeepSeek');
   }
 
-  return {
-    summary: choice.message.content,
-    emailCount: emails.length,
-    usage: {
-      promptTokens: response.usage.prompt_tokens,
-      completionTokens: response.usage.completion_tokens,
-      totalTokens: response.usage.total_tokens,
-    },
-    model: response.model,
-  };
+    return {
+      summary: choice.message.content,
+      emailCount: emails.length,
+      usage: {
+        promptTokens: response.usage.prompt_tokens,
+        completionTokens: response.usage.completion_tokens,
+        totalTokens: response.usage.total_tokens,
+      },
+      model: response.model,
+    };
+  },
 };

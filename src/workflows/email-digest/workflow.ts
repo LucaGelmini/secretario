@@ -15,7 +15,7 @@ import type { EmailDigestParams, EmailDigestResult } from './types';
  * 3. Send the AI summary to Telegram
  */
 export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestParams> {
-  async run(
+  override async run(
     event: WorkflowEvent<EmailDigestParams>,
     step: WorkflowStep
   ): Promise<EmailDigestResult> {
@@ -42,7 +42,7 @@ export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestPara
       digestMessage = '📭 No hay emails nuevos en las últimas 24 horas.';
     } else {
       const summaryResult = await step.do('summarize-emails', async () => {
-        return await summarizeEmails(
+        return await summarizeEmails.execute(
           {
             emails: emailsResult.emails,
             language: 'es',
@@ -71,7 +71,7 @@ ${summaryHtml}
 
     // Step 3: Send to Telegram
     const telegramResult = await step.do('send-to-telegram', async () => {
-      return await sendTelegramMessage(
+      return await sendTelegramMessage.execute(
         {
           text: digestMessage,
           parseMode: 'HTML', // Use HTML for formatting

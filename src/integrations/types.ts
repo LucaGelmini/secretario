@@ -3,10 +3,10 @@
  */
 export class IntegrationError extends Error {
   constructor(
-    message: string,
     public readonly integration: string,
-    public readonly code?: string,
+    message: string,
     public readonly statusCode?: number,
+    public readonly code?: string,
     public readonly details?: unknown
   ) {
     super(message);
@@ -19,7 +19,7 @@ export class IntegrationError extends Error {
  */
 export class AuthenticationError extends IntegrationError {
   constructor(integration: string, message: string, details?: unknown) {
-    super(message, integration, 'AUTH_ERROR', 401, details);
+    super(integration, message, 401, 'AUTH_ERROR', details);
     this.name = 'AuthenticationError';
   }
 }
@@ -30,10 +30,10 @@ export class AuthenticationError extends IntegrationError {
 export class RateLimitError extends IntegrationError {
   constructor(integration: string, retryAfter?: number) {
     super(
-      `Rate limit exceeded${retryAfter ? `, retry after ${retryAfter}s` : ''}`,
       integration,
-      'RATE_LIMIT',
+      `Rate limit exceeded${retryAfter ? `, retry after ${retryAfter}s` : ''}`,
       429,
+      'RATE_LIMIT',
       { retryAfter }
     );
     this.name = 'RateLimitError';
@@ -45,7 +45,7 @@ export class RateLimitError extends IntegrationError {
  */
 export class ServiceUnavailableError extends IntegrationError {
   constructor(integration: string, message?: string) {
-    super(message || 'Service temporarily unavailable', integration, 'SERVICE_UNAVAILABLE', 503);
+    super(integration, message || 'Service temporarily unavailable', 503, 'SERVICE_UNAVAILABLE');
     this.name = 'ServiceUnavailableError';
   }
 }

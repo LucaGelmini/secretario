@@ -1,2 +1,2 @@
-export * from "./fetch-emails";
-export * from "./types";
+export * from './fetch-emails';
+export * from './types';
