@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.1] - 2026-05-05
+
+### Fixed
+- Add Node.js 22 setup for Wrangler compatibility
+- Improve telegram message formatting in release workflow
+- Only run release workflow on manual dispatch
+- Fix YAML syntax error in release workflow
+
+
 ## [0.1.0] - 2026-05-05
 
 ### Added

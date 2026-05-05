@@ -1,6 +1,6 @@
 {
   "name": "secretario",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Asistente personal serverless con IA en Cloudflare Workers",
   "private": true,
   "type": "module",
