@@ -1,5 +1,7 @@
 name: Release
 
+run-name: ${{ inputs.version_bump == 'patch' && 'Patch Release' || inputs.version_bump == 'minor' && 'Minor Release' || inputs.version_bump == 'major' && 'Major Release' || 'Release' }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -57,13 +59,16 @@ jobs:
               MAJOR=$((MAJOR + 1))
               MINOR=0
               PATCH=0
+              RELEASE_TYPE="Major"
               ;;
             minor)
               MINOR=$((MINOR + 1))
               PATCH=0
+              RELEASE_TYPE="Minor"
               ;;
             patch)
               PATCH=$((PATCH + 1))
+              RELEASE_TYPE="Patch"
               ;;
           esac
           
@@ -71,6 +76,10 @@ jobs:
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "new=$NEW" >> $GITHUB_OUTPUT
           echo "tag=v${NEW}" >> $GITHUB_OUTPUT
+          
+          echo "## 🚀 ${RELEASE_TYPE} Release v${NEW}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Upgrading from v${CURRENT} to v${NEW}" >> $GITHUB_STEP_SUMMARY
 
       - name: Get previous tag
         id: prev_tag
