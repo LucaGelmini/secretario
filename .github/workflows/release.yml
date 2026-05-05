@@ -153,12 +153,15 @@ jobs:
           VERSION_TAG: ${{ steps.version.outputs.tag }}
           CHANGELOG_CONTENT: ${{ steps.changelog_last5.outputs.content }}
         run: |
-          MESSAGE="🚀 <b>Secretario ${VERSION_TAG} Released!</b>
-
-${CHANGELOG_CONTENT}
-
-<i>Deployed to: secretario.lucagelmini.workers.dev</i>"
-
+          MESSAGE=$(cat <<EOF
+          🚀 <b>Secretario ${VERSION_TAG} Released!</b>
+          
+          ${CHANGELOG_CONTENT}
+          
+          <i>Deployed to: secretario.lucagelmini.workers.dev</i>
+          EOF
+          )
+          
           curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -H "Content-Type: application/json" \
             -d "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"text\": $(echo "$MESSAGE" | jq -Rs .), \"parse_mode\": \"HTML\", \"disable_web_page_preview\": true}"
