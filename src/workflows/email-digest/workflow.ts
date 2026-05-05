@@ -2,6 +2,7 @@ import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloud
 import { fetchEmailsOperator } from '@/operators/email/fetch-emails';
 import { summarizeEmails } from '@/operators/ai/summarize-emails';
 import { sendTelegramMessage } from '@/operators/telegram/send-message';
+import { markdownToTelegramHtml } from '@/shared/telegram-formatter';
 import type { Env } from '@/shared/env';
 import type { EmailDigestParams, EmailDigestResult } from './types';
 
@@ -56,13 +57,16 @@ export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestPara
         `AI summary generated (${summaryResult.usage.totalTokens} tokens, model: ${summaryResult.model})`
       );
 
+      // Convert Markdown to Telegram-compatible HTML
+      const summaryHtml = markdownToTelegramHtml(summaryResult.summary);
+
       // Format final message with AI summary
-      digestMessage = `📧 Resumen de Emails (${emailsResult.count} emails)
+      digestMessage = `<b>📧 Resumen de Emails (${emailsResult.count} emails)</b>
 
-${summaryResult.summary}
+${summaryHtml}
 
----
-Tokens: ${summaryResult.usage.totalTokens} | Modelo: ${summaryResult.model}`;
+<i>───</i>
+<i>Tokens: ${summaryResult.usage.totalTokens} | Modelo: ${summaryResult.model}</i>`;
     }
 
     // Step 3: Send to Telegram
@@ -70,7 +74,7 @@ Tokens: ${summaryResult.usage.totalTokens} | Modelo: ${summaryResult.model}`;
       return await sendTelegramMessage(
         {
           text: digestMessage,
-          parseMode: undefined, // Plain text for now
+          parseMode: 'HTML', // Use HTML for formatting
           disableWebPagePreview: true,
         },
         { env: this.env }

@@ -67,6 +67,7 @@ export class TelegramClient {
 			const data = (await response.json()) as TelegramApiResponse<T>;
 
 			if (!data.ok || !data.result) {
+				console.error("Telegram API error:", data.description);
 				throw new IntegrationError(
 					"telegram",
 					`Telegram API error: ${data.description || "Unknown error"}`,

@@ -18,5 +18,8 @@
     "@types/bun": "latest",
     "typescript": "^5.9.3",
     "wrangler": "^4.87.0"
+  },
+  "dependencies": {
+    "marked": "^18.0.3"
   }
 }
