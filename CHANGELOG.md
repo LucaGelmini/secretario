@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.3.0] - 2026-05-05
+
+### Added
+- Automated Gmail classification and cleanup workflow with daily cron trigger at 8:30 AM Argentina time
+- Declarative workflow configuration system
+- Gmail classification rules with 595 hardcoded patterns
+- Deterministic classification operator with KV-learned rules and AI fallback
+- Email organization operator supporting batch label and delete operations
+- Batch modify support in GmailClient for efficient bulk operations
+- Prompt injection protection with input sanitization and hardened system prompts
+- Telegram authentication guard restricting access to authorized chat IDs only
+- Rule confirmation flow via Telegram with simple number responses
+- KV namespace for learned rules with 7-day expiration on pending confirmations
+- Workflow configuration imported from package.json
+
+### Changed
+- Updated workflow to 6-step pipeline: fetch, classify, organize, summarize, send digest, send suggestions
+- Extended OAuth scopes to include gmail.modify and gmail.labels
+
+### Security
+- Telegram webhook restricted to respond only to authorized TELEGRAM_CHAT_ID
+- AI prompts hardened against injection attacks
+- Email content sanitized before AI processing
+- Learned rules require explicit user confirmation before activation
+
+
 ## [0.2.0] - 2026-05-05
 
 ### Added
