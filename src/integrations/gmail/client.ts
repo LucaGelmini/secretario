@@ -55,6 +55,11 @@ export class GmailClient {
       );
     }
 
+    // Handle 204 No Content and other empty responses (e.g., batchModify)
+    if (response.status === 204 || response.headers.get('content-length') === '0') {
+      return undefined as T;
+    }
+
     return response.json<T>();
   }
 

@@ -24,4 +24,7 @@ export interface Env {
 
   // DeepSeek AI
   DEEPSEEK_API_KEY?: string;
+
+  // API Secret for authenticating /trigger endpoint
+  API_SECRET?: string;
 }

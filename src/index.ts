@@ -33,8 +33,16 @@ export default {
       });
     }
 
-    // Manual workflow trigger endpoint (for testing)
+    // Manual workflow trigger endpoint
     if (url.pathname === '/trigger' && request.method === 'GET') {
+      // Authenticate with Bearer token
+      const authHeader = request.headers.get('Authorization');
+      const token = authHeader?.replace('Bearer ', '');
+
+      if (!env.API_SECRET || token !== env.API_SECRET) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
       try {
         // Trigger the email digest workflow
         const instance = await env.EMAIL_DIGEST_WORKFLOW.create({
