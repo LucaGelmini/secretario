@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.5.0] - 2026-06-08
+
+### Added
+
+- Centralized error reporting to Telegram via a single `reportError` helper that surfaces every unhandled error as a Telegram alert
+- End-to-end smoke test for error reporting (`scripts/smoke-test-errors.ts`)
+
+### Fixed
+
+- All fetch entrypoints now catch and report errors through the centralized reporter, except the Telegram webhook which keeps its own catch to always return 200
+
+### Internal
+
+- Add async safety-net catch to fetch entrypoints that do not need special response handling
+- Ensure scheduled tasks and EmailDigestWorkflow rethrow errors after reporting to preserve Cloudflare failure semantics
+
+
 ## [0.4.0] - 2026-06-08
 
 ### Added
