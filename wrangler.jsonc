@@ -32,7 +32,8 @@
 
   // Non-secret vars (override per-env as needed)
   "vars": {
-    "WORKER_BASE_URL": "https://secretario.lucagelmini.workers.dev"
+    "WORKER_BASE_URL": "https://secretario.lucagelmini.workers.dev",
+    "AUTHORIZED_GOOGLE_EMAIL": "lfgelmini@gmail.com"
   },
 
   // Observability
