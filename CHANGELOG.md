@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.4.0] - 2026-06-08
+
+### Added
+- Add `/reauth` Telegram command that lets users self-service Gmail re-authentication on demand
+- Schedule automatic re-auth link generation every 5 days to maintain a 2-day buffer before Google's 7-day token expiry
+- Add KV-first token storage, reading from KV and falling back to the `GOOGLE_REFRESH_TOKEN` environment variable
+- Add identity guard on the OAuth callback to reject tokens from unexpected email accounts
+- Add one-time state nonce with a 15-minute TTL to prevent replay attacks on the callback URL
+
+### Changed
+- Refactor monolithic `index.ts` into separate modules: `router.ts` for dispatch, `handlers.ts` for route handlers, and a minimal entrypoint
+- Extract `confirmRule` logic to `src/operators/telegram/confirm-rule.ts`
+- Extract HTML response helper to `src/shared/html.ts`
+- Add `CRONS` constant in `index.ts` to centralize cron schedule definitions
+
+
 ## [0.3.1] - 2026-05-07
 
 ### Fixed
