@@ -27,4 +27,10 @@ export interface Env {
 
   // API Secret for authenticating /trigger endpoint
   API_SECRET?: string;
+
+  // Worker base URL (e.g. https://secretario.lucagelmini.workers.dev)
+  WORKER_BASE_URL?: string;
+
+  // Google account email to verify during OAuth callback
+  AUTHORIZED_GOOGLE_EMAIL?: string;
 }

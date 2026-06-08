@@ -1,8 +1,8 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
 import { summarizeEmails } from '@/operators/ai/summarize-emails';
 import {
-  fetchEmailsOperator,
   classifyEmailsOperator,
+  fetchEmailsOperator,
   organizeEmailsOperator,
 } from '@/operators/email';
 import { sendTelegramMessage } from '@/operators/telegram/send-message';
@@ -83,9 +83,7 @@ export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestPara
       );
     });
 
-    console.log(
-      `Organized: ${organizeResult.labeled} labeled, ${organizeResult.deleted} deleted`
-    );
+    console.log(`Organized: ${organizeResult.labeled} labeled, ${organizeResult.deleted} deleted`);
 
     // Step 4: Summarize important emails (only those to keep)
     const importantEmails = classifyResult.classified

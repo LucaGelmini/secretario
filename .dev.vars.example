@@ -16,3 +16,9 @@
 
 # DeepSeek AI
 # DEEPSEEK_API_KEY=sk-...
+
+# Worker base URL (used in OAuth callback redirect URI)
+# WORKER_BASE_URL=http://localhost:8787
+
+# Google account email that is authorized to complete OAuth (identity guard)
+# AUTHORIZED_GOOGLE_EMAIL=your-gmail@gmail.com
