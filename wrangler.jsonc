@@ -24,9 +24,15 @@
   ],
 
   // Cron Triggers
-  // 30 11 * * * = 11:30 UTC = 08:30 UTC-3 (Argentina time)
+  // 30 11 * * * = 11:30 UTC = 08:30 ART (Argentina time) — daily digest
+  // 0 12 */5 * * = 12:00 UTC every 5 days — Gmail re-auth reminder (2-day buffer before 7-day expiry)
   "triggers": {
-    "crons": ["30 11 * * *"]
+    "crons": ["30 11 * * *", "0 12 */5 * *"]
+  },
+
+  // Non-secret vars (override per-env as needed)
+  "vars": {
+    "WORKER_BASE_URL": "https://secretario.lucagelmini.workers.dev"
   },
 
   // Observability

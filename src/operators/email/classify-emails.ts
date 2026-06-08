@@ -1,11 +1,11 @@
-import { classifyEmail, CATEGORY_ACTIONS, type Category } from '@/config/gmail-rules';
+import { CATEGORY_ACTIONS, type Category, classifyEmail } from '@/config/gmail-rules';
 import { DeepSeekClient } from '@/integrations/deepseek/client';
 import type { Email } from '@/integrations/gmail/types';
 import type { Operator, OperatorContext } from '@/operators/types';
 import type {
+  ClassifiedEmail,
   ClassifyEmailsInput,
   ClassifyEmailsOutput,
-  ClassifiedEmail,
   RuleSuggestion,
 } from './types';
 
@@ -64,9 +64,7 @@ export const classifyEmailsOperator: Operator<ClassifyEmailsInput, ClassifyEmail
 
     // Load learned rules from KV
     const learnedRulesJson = await env.GMAIL_RULES_KV.get(KV_LEARNED_RULES);
-    const learnedRules: LearnedRulesMap = learnedRulesJson
-      ? JSON.parse(learnedRulesJson)
-      : {};
+    const learnedRules: LearnedRulesMap = learnedRulesJson ? JSON.parse(learnedRulesJson) : {};
 
     console.log(`Loaded ${Object.keys(learnedRules).length} learned rules from KV`);
 

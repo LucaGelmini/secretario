@@ -1,5 +1,5 @@
-import type { Email } from '@/integrations/gmail/types';
 import type { Category, ClassificationResult } from '@/config/gmail-rules';
+import type { Email } from '@/integrations/gmail/types';
 
 /**
  * Fetch Emails Operator Input/Output

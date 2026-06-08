@@ -1,8 +1,6 @@
 import { GmailClient } from '@/integrations/gmail/client';
-import { getAccessTokenFromRefreshToken } from '@/integrations/google/auth';
-import type { GoogleOAuth2Credentials } from '@/integrations/google/types';
+import { getGmailAccessToken } from '@/integrations/google/token-store';
 import type { Operator, OperatorContext } from '@/operators/types';
-import { validateEnv } from '@/shared/errors';
 import type { OrganizeEmailsInput, OrganizeEmailsOutput } from './types';
 
 /**
@@ -25,20 +23,10 @@ export const organizeEmailsOperator: Operator<OrganizeEmailsInput, OrganizeEmail
 
   async execute(input, ctx: OperatorContext): Promise<OrganizeEmailsOutput> {
     const { classified } = input;
-    const { env } = ctx;
 
-    // Validate required environment variables
-    validateEnv(ctx.env, ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN']);
-
-    const credentials: GoogleOAuth2Credentials = {
-      clientId: env.GOOGLE_CLIENT_ID!,
-      clientSecret: env.GOOGLE_CLIENT_SECRET!,
-      refreshToken: env.GOOGLE_REFRESH_TOKEN!,
-    };
-
-    // Get OAuth2 access token
+    // Get OAuth2 access token (KV-first, env fallback)
     console.log('Getting Google access token...');
-    const accessToken = await getAccessTokenFromRefreshToken(credentials);
+    const accessToken = await getGmailAccessToken(ctx.env);
 
     // Create Gmail client
     const gmail = new GmailClient({ accessToken });

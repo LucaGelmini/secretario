@@ -128,10 +128,13 @@ function waitForAuthCode(): Promise<string> {
     });
 
     // Timeout after 5 minutes
-    setTimeout(() => {
-      server.close();
-      reject(new Error('Timeout waiting for authorization (5 minutes)'));
-    }, 5 * 60 * 1000);
+    setTimeout(
+      () => {
+        server.close();
+        reject(new Error('Timeout waiting for authorization (5 minutes)'));
+      },
+      5 * 60 * 1000
+    );
   });
 }
 
