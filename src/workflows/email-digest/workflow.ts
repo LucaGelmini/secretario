@@ -7,6 +7,7 @@ import {
 } from '@/operators/email';
 import { sendTelegramMessage } from '@/operators/telegram/send-message';
 import type { Env } from '@/shared/env';
+import { reportError } from '@/shared/error-reporter';
 import { markdownToTelegramHtml } from '@/shared/telegram-formatter';
 import type { EmailDigestParams, EmailDigestResult } from './types';
 
@@ -22,6 +23,18 @@ import type { EmailDigestParams, EmailDigestResult } from './types';
  */
 export class EmailDigestWorkflow extends WorkflowEntrypoint<Env, EmailDigestParams> {
   override async run(
+    event: WorkflowEvent<EmailDigestParams>,
+    step: WorkflowStep
+  ): Promise<EmailDigestResult> {
+    try {
+      return await this.runDigest(event, step);
+    } catch (error) {
+      await reportError(this.env, 'email-digest-workflow', error);
+      throw error;
+    }
+  }
+
+  private async runDigest(
     event: WorkflowEvent<EmailDigestParams>,
     step: WorkflowStep
   ): Promise<EmailDigestResult> {
