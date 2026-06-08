@@ -1,5 +1,6 @@
 import { sendReauthLink } from '@/integrations/google/oauth-flow';
 import type { Env } from '@/shared/env';
+import { reportError } from '@/shared/error-reporter';
 import { route } from './router';
 
 export { EmailDigestWorkflow } from '@/workflows/email-digest/workflow';
@@ -10,8 +11,13 @@ const CRONS = {
 } as const;
 
 export default {
-  fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
-    return route(request, env);
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
+    try {
+      return await route(request, env);
+    } catch (error) {
+      await reportError(env, 'fetch', error);
+      return Response.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
   },
 
   async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
@@ -25,7 +31,8 @@ export default {
         console.log('Workflow instance created:', instance.id);
       }
     } catch (error) {
-      console.error('Error in scheduled trigger:', error);
+      await reportError(env, `scheduled:${event.cron}`, error);
+      throw error;
     }
   },
 };
